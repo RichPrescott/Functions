@@ -1,2 +1,2 @@
-# Misc
-Miscellaneous scripts not part of other projects
+# Functions
+Miscellaneous functions not part of other projects
