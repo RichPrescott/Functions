@@ -71,9 +71,9 @@ http://blog.richprescott.com
     {
         foreach ($File in $Path)
         {
-            $FileName = Split-Path -Path $Path -Leaf
+            $FileName = Split-Path -Path $File -Leaf
 
-            Get-Content -Path $Path | %{
+            Get-Content -Path $File | %{
                 $_ -match '\<\!\[LOG\[(?<Message>.*)?\]LOG\]\!\>\<time=\"(?<Time>.+)(?<TZAdjust>[+|-])(?<TZOffset>\d{2,3})\"\s+date=\"(?<Date>.+)?\"\s+component=\"(?<Component>.+)?\"\s+context="(?<Context>.*)?\"\s+type=\"(?<Type>\d)?\"\s+thread=\"(?<TID>\d+)?\"\s+file=\"(?<Reference>.+)?\"\>' | Out-Null
                 [pscustomobject]@{
                     UTCTime = [datetime]::ParseExact($("$($matches.date) $($matches.time)$($matches.TZAdjust)$($matches.TZOffset/60)"),"MM-dd-yyyy HH:mm:ss.fffz", $null, "AdjustToUniversal")
