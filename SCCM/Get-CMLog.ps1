@@ -1,4 +1,4 @@
-function Get-CMLog
+﻿function Get-CMLog
 {
 <#
 .SYNOPSIS
