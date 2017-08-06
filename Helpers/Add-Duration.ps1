@@ -10,7 +10,7 @@ Takes an array of objects with timestamps and adds duration between each object.
 .Parameter Object
 Specifies the array of objects to add a duration to.
 
-.Parameter TimeColumn
+.Parameter TimeProperty
 Specifies field containing a timestamp used to determine duration.
 
 .Parameter Measure
