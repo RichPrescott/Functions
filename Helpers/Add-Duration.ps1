@@ -53,9 +53,10 @@ Thanks to Nasir Zubair (@nsr81) for helping with some performance optimization.
 
     PROCESS
     {
-
+        # Add the duration property to each object as it passes through
         $Object | Add-Member -NotePropertyName "Total$($Measure)" -NotePropertyValue "-" -Force
 
+        # If this is the first object, store the current object so that when the next one is passed through, we can compare the two
         if ($IsFirstItem)
         {
             $IsFirstItem = $false
@@ -63,28 +64,30 @@ Thanks to Nasir Zubair (@nsr81) for helping with some performance optimization.
             return
         }
 
+        # Create the duration property - Allow the invoker to specify [Int] to format the value
         Try
         {
-            $TimeSpan = New-TimeSpan -Start ($PreviousItem."$($TimeProperty)") -End ($Object."$($TimeProperty)") | Select-Object -ExpandProperty "$Total$($Measure)"
+            $Duration = New-TimeSpan -Start ($PreviousItem."$($TimeProperty)") -End ($Object."$($TimeProperty)") | Select-Object -ExpandProperty "$Total$($Measure)"
 
             if ($Integer)
             {
-                $TimeSpan = [int]$TimeSpan
+                $Duration = [int]$Duration
             }
         }
         Catch
         {
-            $TimeSpan = "-"
+            $Duration = "-"
         }
 
-        $PreviousItem."Total$($Measure)" = $TimeSpan
+        # Update the duration property of the current object and set the current object as the previous before we continue to next object
+        $PreviousItem."Total$($Measure)" = $Duration
         Write-Output $PreviousItem
         $PreviousItem = $Object
     }
 
     END
     {
-        # This last item in the list.  As it is the last item, a duration does not exist and will be shown as a dash (-).
+        # The last item in the list.  As it is the last item, a duration does not exist and will be shown as a dash (-).
         Write-Output $PreviousItem
     }
 }
