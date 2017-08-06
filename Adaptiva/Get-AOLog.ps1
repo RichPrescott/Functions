@@ -12,9 +12,9 @@
     {
         foreach ($File in $Path)
         {
-            $FileName = Split-Path -Path $Path -Leaf
+            $FileName = Split-Path -Path $File -Leaf
 
-            Get-Content -Path $Path | %{
+            Get-Content -Path $File | %{
                 $_ -match '(?<Date>\d{4}-\d{2}-\d{2}) (?<Time>\d{2}:\d{2}:\d{2}\,\d{3}) - (?<Level>\w+) - (?<Message>.*) - (?<Component>.*) - TID=(?<TID>\d{1,6}), (?<ThreadDescription>.*)( - )?(?<Misc>.*)?' | Out-Null
                 New-Object PSObject -Property @{
                     DateTime = [datetime]::ParseExact($("$($matches.date) $($matches.time)"),"yyyy-MM-dd HH:mm:ss.fff", $null)
