@@ -5,69 +5,87 @@
         [Parameter(Position=0,
                    ValueFromPipeline=$true)]
         [Object]
-        $InputObject,
+        $Object,
         [Parameter(Mandatory=$true)]
         [String]
         $Property,
         $Columns
-        )
+    )
 
-    BEGIN {
+    BEGIN
+    {
         $Width = $Host.UI.RawUI.BufferSize.Width
         $Data = @()
     }
 
-    PROCESS {
-        $Data += $InputObject
+    PROCESS
+    {
+        # Add all of the objects from the pipeline into an array
+        $Data += $Object
     }
 
-    END {
-        
-        Try {
-            $Largest = $Data | Sort-Object $Property | Select -ExpandProperty $Property -Last 1 -ErrorAction Stop
+    END
+    {
+        # Determine scale of graph    
+        Try
+        {
+            $Largest = $Data.$Property | Sort-Object | Select-Object -Last 1 
         }
 
-        Catch {
+        Catch
+        {
             Write-Warning "Failed to find property $Property"
             Return
         }
 
-        if ($Largest) {
-            $Data = $Data | Select $Columns | %{
+        if ($Largest)
+        {
+            # Add the width of all requested columns to each object
+            $Data = $Data | Select-Object -Property $Columns | %{
                 $Lengths = @()
                 $Len = 0
                 $Item = $_
                 $Columns | %{
-                    $Prop = $_
-                    $Len += $Item.$($Prop).ToString().Length
+                    if ($Item.$($_))
+                    {
+                        $Len += $Item.$($_).ToString().Length
                     }
+                }
                 Add-Member -InputObject $Item -MemberType NoteProperty -Name Length -Value $Len -PassThru
                 $Lengths += $Len
             }
 
-        $Sample = $Lengths | Sort Length | Select-Object -Last 1
-        [Int]$Longest = $Sample.Length + ($Columns.Count * 33)
-        $Available = ($Width-$Longest-4)/100
-
-        ForEach ($Obj in $Data) {
+            # Determine the available chart space based on width of all requested columns
+            $Sample = $Lengths | Sort -Property Length | Select-Object -Last 1
+            [Int]$Longest = $Sample.Length + ($Columns.Count * 33)
+            $Available = $Width-$Longest-4
             
-            if ($Obj.$Property -eq '-' -OR $Obj.$Property -eq 0) {
-                [Int]$Graph = 0
+            ForEach ($Obj in $Data)
+            {
+                # Set bar length to 0 if it is not a number greater than 0
+                if ($Obj.$Property -eq '-' -OR $Obj.$Property -eq 0 -or -not $Obj.$Property)
+                {
+                    [Int]$Graph = 0
                 }
-            else {
-                $Graph = (($Obj.$Property) / $Largest) * 100 * $Available
+                else
+                {
+                    $Graph = (($Obj.$Property) / $Largest) * $Available
                 }
 
-            if ($Graph -ge 2) {
-                [String]$G = [char]9608
+                # Based on bar size, use a different character to visualize the bar
+                if ($Graph -ge 2)
+                {
+                    [String]$G = [char]9608
                 }
-            elseif ($Graph -gt 0 -AND $graph -le 1) {
-                [String]$G = [char]9612
-                $Graph = 1
-            }
+                elseif ($Graph -gt 0 -AND $Graph -le 1)
+                {
+                    [String]$G = [char]9612
+                    $Graph = 1
+                }
 
-            $Char = $G * $Graph
-            $Obj | Select $Columns | Add-Member -MemberType NoteProperty -Name Graph -Value $Char -PassThru
+                # Create the property that will contain the bar
+                $Char = $G * $Graph
+                $Obj | Select-Object -Property $Columns | Add-Member -MemberType NoteProperty -Name Graph -Value $Char -PassThru
     
             } # End ForEach
 
