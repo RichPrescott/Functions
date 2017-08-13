@@ -67,7 +67,7 @@ Thanks to Nasir Zubair (@nsr81) for helping with some performance optimization.
         # Create the duration property - Allow the invoker to specify [Int] to format the value
         Try
         {
-            $Duration = New-TimeSpan -Start ($PreviousItem."$($TimeProperty)") -End ($Object."$($TimeProperty)") | Select-Object -ExpandProperty "$Total$($Measure)"
+            $Duration = New-TimeSpan -Start ($PreviousItem."$($TimeProperty)") -End ($Object."$($TimeProperty)") | Select-Object -ExpandProperty "Total$($Measure)"
 
             if ($Integer)
             {
