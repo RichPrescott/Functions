@@ -73,8 +73,14 @@ http://blog.richprescott.com
         {
             $FileName = Split-Path -Path $File -Leaf
 
-            Get-Content -Path $File | %{
-                $_ -match '\<\!\[LOG\[(?<Message>.*)?\]LOG\]\!\>\<time=\"(?<Time>.+)(?<TZAdjust>[+|-])(?<TZOffset>\d{2,3})\"\s+date=\"(?<Date>.+)?\"\s+component=\"(?<Component>.+)?\"\s+context="(?<Context>.*)?\"\s+type=\"(?<Type>\d)?\"\s+thread=\"(?<TID>\d+)?\"\s+file=\"(?<Reference>.+)?\"\>' | Out-Null
+            $oFile = Get-Content -Path $File
+            ForEach ($line in $oFile) {
+                If ($line.substring(0,7) -eq '<![LOG[') {
+                    $line -match '\<\!\[LOG\[(?<Message>.*)?\]LOG\]\!\>\<time=\"(?<Time>.+)(?<TZAdjust>[+|-])(?<TZOffset>\d{2,3})\"\s+date=\"(?<Date>.+)?\"\s+component=\"(?<Component>.+)?\"\s+context="(?<Context>.*)?\"\s+type=\"(?<Type>\d)?\"\s+thread=\"(?<TID>\d+)?\"\s+file=\"(?<Reference>.+)?\"\>' | Out-Null
+                }
+                Else {
+                    $line -match '(?<Message>.*)?  \$\$\<(?<Component>.*)?\>\<(?<Date>.+) (?<Time>.+)(?<TZAdjust>[+|-])(?<TZOffset>\d{2,3})?\>\<thread=(?<TID>.*)\>' | Out-Null
+                }
                 [pscustomobject]@{
                     UTCTime = [datetime]::ParseExact($("$($matches.date) $($matches.time)$($matches.TZAdjust)$($matches.TZOffset/60)"),"MM-dd-yyyy HH:mm:ss.fffz", $null, "AdjustToUniversal")
                     LocalTime = [datetime]::ParseExact($("$($matches.date) $($matches.time)"),"MM-dd-yyyy HH:mm:ss.fff", $null)
